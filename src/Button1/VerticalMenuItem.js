@@ -31,15 +31,18 @@ export default class VerticalMenuItem extends Lightning.Component {
   }
   _focus() {
     this.patch({
-      smooth: { color: 0xff763ffc, w: 200 },
+      smooth: { color: 0xff763ffc },
       Label: {
-        smooth: { color: 0xfff526a5 },
+        smooth: { color: 0xffffffff },
       },
     })
   }
   _unfocus() {
     this.patch({
       smooth: { color: 0xffb25db0 },
+      Label: {
+        smooth: { color: 0xff000000 },
+      },
     })
   }
 

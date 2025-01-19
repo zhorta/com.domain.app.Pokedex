@@ -8,15 +8,4 @@ export default class VerticalSquares extends Lightning.Component {
       rect: true,
     }
   }
-
-  set index(value) {
-    if (value < 0 || value >= this.children.length) {
-      return
-    }
-    this._index = value
-  }
-
-  get index() {
-    return this._index
-  }
 }

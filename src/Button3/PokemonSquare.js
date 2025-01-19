@@ -6,7 +6,14 @@ export default class PokemonSquare extends Lightning.Component {
       w: 100,
       h: 100,
       rect: true,
-      color: 0xfff26510,
+      BottomRect: {
+        color: 0xffffffff,
+        rect: true,
+        h: 25,
+        w: 100,
+        mountY: 1,
+        y: (h) => h,
+      },
       Image: {
         w: 80,
         h: 80,

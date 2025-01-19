@@ -1,5 +1,7 @@
 import { Lightning, Utils } from '@lightningjs/sdk'
 
+import { generateRandomColor, arrayToMatrix } from './utils'
+
 import MenuItem from './MenuItem'
 
 import VerticalMenu from './Button1/VerticalMenu'
@@ -19,8 +21,8 @@ export default class App extends Lightning.Component {
   static _template() {
     return {
       Background: {
-        w: 1800,
-        h: 900,
+        w: window.innerWidth,
+        h: window.innerHeight,
         rect: true,
         color: 0xff000000,
       },
@@ -28,36 +30,37 @@ export default class App extends Lightning.Component {
         w: 400,
         h: 200,
         mountX: 0.5,
-        x: 1800 / 2,
+        x: window.innerWidth / 2,
       },
     }
   }
   _init() {
     this._setState('Menu')
     this.horizontalIndex = 0
+    this.colorIndex = 0
     this.verticalIndex = 0
     this.isVerticalMenuOn = false
     this.isVerticalSquaresOn = false
     this.isPokemonOn = false
 
-    this.API_BASE_URL = 'https://pokeapi.co/api/v2/pokemon'
+    this.API_BASE_URL = 'https://pokeapi.co/api/v2'
 
     this.squareColors = []
     this.pokemons = [[], []]
-    this.pokemonImages = []
 
     const buttons = []
     const backgroundColors = ['0xfffbb03b', '0xff409cf5', '0xffd85828']
-    const labelColors = ['0xffffffff', '0xffffffff', '0xffffffff']
     const hasRoundedCorners = [true, true, false]
 
-    this.fetchPokemon()
+    this.fetchPokemons()
 
+    // Creating the menu's buttons dynamically
     for (let i = 0; i < backgroundColors.length; i++) {
       buttons.push({
         type: MenuItem,
+        tags: [`button${i + 1}`],
         x: i * 150,
-        labelColor: labelColors[i],
+        labelColor: 0xffffffff,
         backgroundColor: backgroundColors[i],
         label: `Button #${i + 1}`,
         texture: hasRoundedCorners[i]
@@ -73,7 +76,18 @@ export default class App extends Lightning.Component {
       class VerticalSquares extends this {
         _getFocused() {
           if (this.isVerticalSquaresOn) {
-            return this.tag('Menu').children[1].children[1].children[this.verticalIndex]
+            return this.tag('Menu').children[1].children[1].children[this.colorIndex] // Accessing the colored square
+          }
+          return null
+        }
+      },
+      // After reading the exercise description, I was not sure
+      // whether or not I should add navigation through the vertical menu.
+      // I added it, just in case
+      class VerticalMenu extends this {
+        _getFocused() {
+          if (this.isVerticalMenuOn) {
+            return this.tag('Menu').children[0].children[1].children[this.verticalIndex] // Accessing the vertical menu item
           }
           return null
         }
@@ -83,32 +97,30 @@ export default class App extends Lightning.Component {
           return this.tag('Menu').children[this.horizontalIndex]
         }
       },
-      // class List extends this {
-      //   _getFocused() {
-      //     return this.tag('List')
-      //   }
-      // },
     ]
   }
 
   _handleRight() {
+    this._setState('Menu')
+
     if (this.horizontalIndex === 2) {
       this.horizontalIndex = 0
     } else {
       this.horizontalIndex += 1
     }
+
     if (this.isVerticalMenuOn) {
-      this.tag('Menu').children[0].childList.removeAt(1)
+      this.tag('Menu').children[0].childList.removeAt(1) // Removing the vertical menu
       this.isVerticalMenuOn = false
     }
+
     if (this.isVerticalSquaresOn) {
-      this.tag('Menu').children[1].childList.removeAt(1)
+      this.tag('Menu').children[1].childList.removeAt(1) // Removing the colored squares
       this.isVerticalSquaresOn = false
-      this._setState('Menu')
     }
 
     if (this.isPokemonOn) {
-      this.tag('Menu').childList.removeAt(3)
+      this.tag('Menu').childList.removeAt(3) // Removing the Pokemon grid
       this.isPokemonOn = false
     }
   }
@@ -121,46 +133,44 @@ export default class App extends Lightning.Component {
     }
 
     if (this.isVerticalMenuOn) {
-      this.tag('Menu').children[0].childList.removeAt(1)
+      this.tag('Menu').children[0].childList.removeAt(1) // Removing the vertical menu
       this.isVerticalMenuOn = false
     }
 
     if (this.isVerticalSquaresOn) {
-      this.tag('Menu').children[1].childList.removeAt(1)
+      this.tag('Menu').children[1].childList.removeAt(1) // Removing the colored squares
       this.isVerticalSquaresOn = false
       this._setState('Menu')
     }
 
     if (this.isPokemonOn) {
-      this.tag('Menu').childList.removeAt(3)
+      this.tag('Menu').childList.removeAt(3) // Removing the Pokemon grid
       this.isPokemonOn = false
     }
   }
 
   _handleUp() {
-    if (this.verticalIndex === 0) {
-      this.verticalIndex = 9
-    } else {
-      this.verticalIndex -= 1
+    if (this.isVerticalMenuOn || this.isVerticalSquaresOn) {
+      const indexName = this.isVerticalMenuOn ? 'verticalIndex' : 'colorIndex'
+      this[indexName] = this[indexName] === 0 ? 9 : this[indexName] - 1
     }
 
     if (this.isVerticalSquaresOn) {
       this.tag('Background').patch({
-        color: this.squareColors[this.verticalIndex],
+        color: this.squareColors[this.colorIndex], // Changing the background color depending on the selected square
       })
     }
   }
 
   _handleDown() {
-    if (this.verticalIndex === 9) {
-      this.verticalIndex = 0
-    } else {
-      this.verticalIndex += 1
+    if (this.isVerticalMenuOn || this.isVerticalSquaresOn) {
+      const indexName = this.isVerticalMenuOn ? 'verticalIndex' : 'colorIndex'
+      this[indexName] = this[indexName] === 9 ? 0 : this[indexName] + 1
     }
 
     if (this.isVerticalSquaresOn) {
       this.tag('Background').patch({
-        color: this.squareColors[this.verticalIndex],
+        color: this.squareColors[this.colorIndex], // Changing the background color depending on the selected square
       })
     }
   }
@@ -171,20 +181,15 @@ export default class App extends Lightning.Component {
     } else if (this.horizontalIndex === 1 && !this.isVerticalSquaresOn) {
       this.displayVerticalSquares()
       this.tag('Background').patch({
-        color: this.squareColors[this.verticalIndex],
+        color: this.squareColors[this.colorIndex],
       })
     } else if (this.horizontalIndex === 2 && !this.isPokemonOn) {
       this.displayPokemonGrid()
     }
   }
 
-  // _getFocused() {
-  //   return this.tag('Menu').children[this.horizontalIndex]
-  // }
-
   displayVerticalMenu() {
     const verticalMenu = this.stage.c({ type: VerticalMenu })
-    verticalMenu.index = this.verticalIndex
     const menuItems = []
     const menuOptions = [
       'one',
@@ -200,23 +205,24 @@ export default class App extends Lightning.Component {
     ]
     for (let i = 0; i < menuOptions.length; i++) {
       menuItems.push({
+        tags: [`item${i}`],
         type: VerticalMenuItem,
         y: i * 40,
         label: menuOptions[i],
       })
     }
     verticalMenu.children = menuItems
-    this.tag('Menu').children[0].add(verticalMenu)
+    this.tag('Menu').tag('button1').add(verticalMenu)
     this.isVerticalMenuOn = true
+    this._setState('VerticalMenu') // Setting the focus on the Vertical Menu
   }
 
   displayVerticalSquares() {
     const verticalSquares = this.stage.c({ type: VerticalSquares })
-    verticalSquares.index = this.verticalIndex
 
     const squares = []
     for (let i = 0; i < 10; i++) {
-      this.squareColors.push(this.generateRandomColor())
+      this.squareColors.push(generateRandomColor())
     }
     for (let i = 0; i < 10; i++) {
       squares.push({
@@ -228,13 +234,14 @@ export default class App extends Lightning.Component {
     verticalSquares.children = squares
     this.isVerticalSquaresOn = true
     this.tag('Menu').children[1].add(verticalSquares)
-    this._setState('VerticalSquares')
+    this._setState('VerticalSquares') // Setting the focus on the Vertical Squares
   }
 
   displayPokemonGrid() {
     const pokemonGrid = this.stage.c({ type: Grid })
     const pokemonSquares = []
-    let test = 0
+
+    // I guess I could have used the lightning UI Grid...
     for (let i = 0; i < 5; i++) {
       for (let j = 0; j < 4; j++) {
         pokemonSquares.push({
@@ -242,10 +249,9 @@ export default class App extends Lightning.Component {
           x: (100 + 2) * j,
           y: (100 + 2) * i,
           label: this.pokemons[i][j].name,
-          squareColor: this.generateRandomColor(),
-          imageUrl: this.pokemonImages[test],
+          squareColor: generateRandomColor(),
+          imageUrl: this.pokemons[i][j].image,
         })
-        test += 1
       }
     }
     pokemonGrid.children = pokemonSquares
@@ -253,57 +259,44 @@ export default class App extends Lightning.Component {
     this.isPokemonOn = true
   }
 
-  generateRandomColor() {
-    return '0xff' + ((Math.random() * 0xffffff) << 0).toString(16).padStart(6, '0')
-  }
-
-  arrayToMatrix(array, columns) {
-    const matrix = []
-    for (let i = 0; i < array.length; i += columns) {
-      matrix.push(array.slice(i, i + columns))
-    }
-    return matrix
-  }
-
-  async fetchPokemon() {
+  async fetchPokemons() {
     try {
-      const response = await fetch(this.API_BASE_URL)
+      const response = await fetch(`${this.API_BASE_URL}/pokemon`)
 
       if (!response.ok) {
         throw new Error(`Error! ${response.status}`)
       }
 
       const data = await response.json()
-      this.pokemons = this.arrayToMatrix(data.results, 4)
 
-      for (let line of this.pokemons) {
-        for (const pokemon of line) {
+      const concatData = []
+      for (let pokemon of data.results) {
+        try {
+          const details = await fetch(pokemon.url)
+
+          if (!details.ok) {
+            throw new Error(`Error details! ${details.status}`)
+          }
+
+          const detailsData = await details.json()
+
           try {
-            const details = await fetch(pokemon.url)
+            const imageResponse = await fetch(detailsData.forms[0].url)
 
-            if (!details.ok) {
-              throw new Error(`Error details! ${details.status}`)
+            if (!imageResponse.ok) {
+              throw new Error(`Error image! ${imageResponse.status}`)
             }
 
-            const detailsData = await details.json()
-
-            try {
-              const imageResponse = await fetch(detailsData.forms[0].url)
-
-              if (!imageResponse.ok) {
-                throw new Error(`Error image! ${imageResponse.status}`)
-              }
-
-              const imageData = await imageResponse.json()
-              this.pokemonImages.push(imageData.sprites.front_default)
-            } catch (error) {
-              console.log(`Error! ${error.message}`)
-            }
+            const imageData = await imageResponse.json()
+            concatData.push({ ...pokemon, image: imageData.sprites.front_default })
           } catch (error) {
             console.log(`Error! ${error.message}`)
           }
+        } catch (error) {
+          console.log(`Error! ${error.message}`)
         }
       }
+      this.pokemons = arrayToMatrix(concatData, 4)
     } catch (error) {
       console.log(`Error! ${error.message}`)
     }
