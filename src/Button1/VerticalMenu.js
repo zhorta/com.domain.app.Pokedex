@@ -9,11 +9,6 @@ export default class VerticalMenu extends Lightning.Component {
     }
   }
 
-  _init() {
-    console.log(`VERTICAL INDEX: ${this.index}`)
-    console.log(`Menu Vertical Focus ${this.children[this.index]}`)
-  }
-
   _getFocused() {
     return this.children[this.index]
   }

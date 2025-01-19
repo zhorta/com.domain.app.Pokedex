@@ -53,7 +53,7 @@ export default class VerticalMenuItem extends Lightning.Component {
   }
 
   get padding() {
-    return this._padding || 5
+    return this._padding || 10
   }
 
   set padding(num) {

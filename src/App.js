@@ -66,16 +66,16 @@ export default class App extends Lightning.Component {
       })
     }
     this.tag('Menu').children = buttons
-    console.log(`Menu Horizontal Focus ${this.tag('Menu').children[this.horizontalIndex]}`)
-
-    console.log('Current focus target:', this.application.focus)
   }
 
   static _states() {
     return [
       class VerticalSquares extends this {
         _getFocused() {
-          return this.tag('Menu').children[1].children[1].children[this.verticalIndex]
+          if (this.isVerticalSquaresOn) {
+            return this.tag('Menu').children[1].children[1].children[this.verticalIndex]
+          }
+          return null
         }
       },
       class Menu extends this {
@@ -100,12 +100,11 @@ export default class App extends Lightning.Component {
     if (this.isVerticalMenuOn) {
       this.tag('Menu').children[0].childList.removeAt(1)
       this.isVerticalMenuOn = false
-      this.verticalIndex = 0
     }
     if (this.isVerticalSquaresOn) {
       this.tag('Menu').children[1].childList.removeAt(1)
       this.isVerticalSquaresOn = false
-      this.verticalIndex = 0
+      this._setState('Menu')
     }
 
     if (this.isPokemonOn) {
@@ -124,13 +123,12 @@ export default class App extends Lightning.Component {
     if (this.isVerticalMenuOn) {
       this.tag('Menu').children[0].childList.removeAt(1)
       this.isVerticalMenuOn = false
-      this.verticalIndex = 0
     }
 
     if (this.isVerticalSquaresOn) {
       this.tag('Menu').children[1].childList.removeAt(1)
       this.isVerticalSquaresOn = false
-      this.verticalIndex = 0
+      this._setState('Menu')
     }
 
     if (this.isPokemonOn) {
@@ -231,8 +229,6 @@ export default class App extends Lightning.Component {
     this.isVerticalSquaresOn = true
     this.tag('Menu').children[1].add(verticalSquares)
     this._setState('VerticalSquares')
-    console.log('TEST')
-    console.log(this.tag('Menu').children[1].children[1])
   }
 
   displayPokemonGrid() {

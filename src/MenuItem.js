@@ -30,14 +30,6 @@ export default class MenuItem extends Lightning.Component {
     this.tag('Label').text = value
   }
 
-  get padding() {
-    return this._padding || 5
-  }
-
-  set padding(num) {
-    this._padding = num
-  }
-
   _focus() {
     this.patch({
       smooth: {
