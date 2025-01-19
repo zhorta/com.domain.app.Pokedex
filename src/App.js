@@ -4,14 +4,14 @@ import { generateRandomColor, arrayToMatrix } from './utils'
 
 import MenuItem from './MenuItem'
 
-import VerticalMenu from './Button1/VerticalMenu'
-import VerticalMenuItem from './Button1/VerticalMenuItem'
+import VerticalMenu from './components/Button1/VerticalMenu'
+import VerticalMenuItem from './components/Button1/VerticalMenuItem'
 
-import VerticalSquares from './Button2/VerticalSquares'
-import Square from './Button2/Square'
+import VerticalSquares from './components/Button2/VerticalSquares'
+import Square from './components/Button2/Square'
 
-import Grid from './Button3/Grid'
-import PokemonSquare from './Button3/PokemonSquare'
+import Grid from './components/Button3/Grid'
+import PokemonSquare from './components/Button3/PokemonSquare'
 
 export default class App extends Lightning.Component {
   static getFonts() {
